@@ -239,7 +239,7 @@ button.tag:hover{outline:1px solid var(--accent)}
   <div id="tops" style="display:flex;flex-direction:column;gap:14px"></div>
 
   <section class="panel" aria-label="Business Function by Country">
-    <div class="phead"><div><h2><span class="n">7</span>Business Function by Country</h2><p class="hint" id="hmCtyHint"></p></div></div>
+    <div class="phead"><div><h2><span class="n">5</span>Business Function by Country</h2><p class="hint" id="hmCtyHint"></p></div></div>
     <div class="hmw"><div class="hm" id="hmCty"></div></div>
   </section>
 
@@ -428,9 +428,7 @@ $("hmCty").addEventListener("click",e=>{
 
 /* ---------- tool rankings: 5 least used by country, 6 by legal entity, 7 by region (pairs: as is / to be) ---------- */
 const nReg=e=>D.E[e][2];
-const TOPS=[
- {n:5,dir:"asc",word:"Least used tools",val:a=>a.cs.size,unit:"countries",of:()=>new Set(entScope().map(entCountry)).size,noun:"countries"},
- {n:6,dir:"desc",word:"Most used tools by region",val:a=>new Set([...a.ents].map(nReg)).size,unit:"regions",of:()=>new Set(entScope().map(nReg)).size,noun:"regions"}];
+const TOPS=[];
 const TP=$("tops");
 TP.innerHTML=TOPS.map((c,k)=>`<div class="row2e">`+["asis","tobe"].map((sc,j)=>`<section class="panel" id="pp${k}${j}" aria-label="${c.word}, ${sc==="tobe"?"to be":"as is"}"><div class="phead"><div><h2><span class="n">${c.n}.${j+1}</span><span id="ptT${k}${j}"></span></h2><p class="hint" id="ptH${k}${j}"></p></div></div><div class="bars" id="ptB${k}${j}"></div></section>`).join("")+`</div>`).join("");
 function renderTop(sc,k,j){
