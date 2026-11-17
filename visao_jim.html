@@ -172,6 +172,17 @@ svg.map{width:100%;height:auto;display:block;border-radius:0}
 button.tag:hover{outline:1px solid var(--accent)}
 .tag small{color:var(--muted);margin-left:3px}
 .empty{color:var(--muted);padding:14px 4px}
+.al-list{max-height:70vh;overflow:auto;border-top:1px solid var(--line)}
+.al-row{border-bottom:1px solid var(--line);transition:opacity .15s}
+.al-row.dim{opacity:.38}
+.al-btn{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;background:none;border:0;text-align:left;padding:8px 6px;border-radius:0}
+.al-btn:hover{background:var(--chip)}
+.al-btn .t{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.al-btn .t::before{content:"\25B8";display:inline-block;width:16px;color:var(--muted)}
+.al-btn[aria-expanded="true"] .t::before{content:"\25BE";color:var(--s4)}
+.al-btn .m{font-size:11.5px;color:var(--ink2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.al-d{margin:0 6px 10px 22px;padding:8px 12px;border-left:3px solid var(--s4);background:var(--chip);font-size:12.5px;line-height:1.5}
+.al-d .nd{color:var(--muted)}
 @media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.row2,.row2e{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:560px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.br{grid-template-columns:minmax(90px,130px) minmax(0,1fr) 66px;gap:6px}.filters .lbl{min-width:100%}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -241,6 +252,11 @@ button.tag:hover{outline:1px solid var(--accent)}
   <section class="panel" aria-label="Business Function by Country">
     <div class="phead"><div><h2><span class="n">5</span>Business Function by Country</h2><p class="hint" id="hmCtyHint"></p></div></div>
     <div class="hmw"><div class="hm" id="hmCty"></div></div>
+  </section>
+
+  <section class="panel" aria-label="List of applications">
+    <div class="phead"><div><h2><span class="n">6</span><span id="alTitle">List of applications</span></h2><p class="hint" id="alHint"></p></div></div>
+    <div class="al-list" id="alList"></div>
   </section>
 
 </div>
@@ -502,8 +518,24 @@ dd.addEventListener("mousedown",e=>e.preventDefault());
 dd.addEventListener("click",e=>{const b=e.target.closest("[data-t]");if(b)pick(+b.dataset.t);});
 document.addEventListener("click",e=>{if(!e.target.closest(".tool-box"))closeDd();});
 
+/* ---------- 6. list of applications (accordion; dims tools outside the current filters) ---------- */
+S.open=new Set();
+function renderList(){
+  const sc=S.scn,names=TN(),act=new Set(rowsF().map(tid)),gen=rowsF("proc");
+  act.delete(-1);
+  const bf=new Map(),ct=new Map();
+  for(const r of gen){const t=tid(r);if(t<0)continue;if(!bf.has(t)){bf.set(t,new Set());ct.set(t,new Set());}bf.get(t).add(r[1]);ct.get(t).add(entCountry(r[2]));}
+  const list=names.map((n,i)=>[n,i]).filter(x=>USED[sc].has(x[1]));
+  const filtered=S.procs.size||S.segs.size||TS().size,nAct=list.filter(x=>act.has(x[1])).length;
+  $("alTitle").textContent="List of applications"+(sc==="tobe"?", to be":", as is");
+  $("alHint").textContent=`Click an application to see its description. `+(filtered?`${nAct} of ${list.length} applications match the current filters; the others are faded.`:`${list.length} applications. Select business function cards to fade the ones that do not apply.`);
+  $("alList").innerHTML=list.map(([n,i])=>{
+    const key=sc+":"+n,open=S.open.has(key),on=act.has(i),ds=D.DESCN[n],b=bf.get(i),c=ct.get(i);
+    return `<div class="al-row${on?"":" dim"}"><button type="button" class="al-btn" data-k="${esc(key)}" aria-expanded="${open}" aria-controls="ald_${i}"><span class="t" title="${esc(n)}">${esc(n)}</span><span class="m">${b?`${b.size} business function${b.size>1?"s":""} · ${c.size} countr${c.size>1?"ies":"y"}`:""}</span></button>${open?`<div class="al-d" id="ald_${i}" role="region"><b>${esc(n)}</b> &mdash; ${ds?esc(ds):`<span class="nd">No description in the masterlist.</span>`}</div>`:""}</div>`;}).join("");
+}
+$("alList").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(!b)return;const k=b.dataset.k;S.open.has(k)?S.open.delete(k):S.open.add(k);const y=$("alList").scrollTop;renderList();$("alList").scrollTop=y;});
 function render(){
-  syncUI();renderMap();renderPlan();renderKPIs();renderCards();renderHeat();renderTops();renderDetail();
+  syncUI();renderMap();renderPlan();renderKPIs();renderCards();renderHeat();renderTops();renderDetail();renderList();
 }
 render();
 </script>
